@@ -1,0 +1,209 @@
+name: "bjut-network"
+
+version: 1.0.0
+
+client:
+
+  organization: Org1
+
+  logging:
+    level: info
+
+  cryptoconfig:
+    path: ${GOPATH}/src/identity/fixtures/crypto-config
+
+  credentialStore:
+    path: /tmp/bjut-store
+
+    cryptoStore:
+      path: /tmp/bjut-msp
+
+  BCCSP:
+    security:
+     enabled: true
+     default:
+      provider: "SW"
+     hashAlgorithm: "SHA2"
+     softVerify: true
+     level: 256
+
+  tlsCerts:
+
+    systemCertPool: false
+
+    client:
+      key:
+        path:
+      cert:
+        path:
+
+channels:
+  mychannel:
+    peers:
+      peer0.org1.sxf.bjut.cn:
+
+        endorsingPeer: true
+
+        chaincodeQuery: true
+
+        ledgerQuery: true
+
+        eventSource: true
+
+      peer1.org1.sxf.bjut.cn:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+    policies:
+ 
+      queryChannelConfig:
+   
+        minResponses: 1
+  
+        maxTargets: 1
+ 
+        retryOpts:
+ 
+          attempts: 5
+     
+          initialBackoff: 500ms
+   
+          maxBackoff: 5s
+     
+          backoffFactor: 2.0
+ 
+      discovery:
+ 
+        maxTargets: 2
+     
+        retryOpts:
+  
+          attempts: 4
+ 
+          initialBackoff: 500ms
+
+          maxBackoff: 5s
+   
+          backoffFactor: 2.0
+
+      eventService:
+       
+        resolverStrategy: PreferOrg
+      
+        balancer: Random
+      
+        blockHeightLagThreshold: 5
+       
+        reconnectBlockHeightLagThreshold: 10
+       
+        peerMonitorPeriod: 5s
+
+organizations:
+  Org1:
+    mspid: org1.sxf.bjut.cn
+    cryptoPath: peerOrganizations/org1.sxf.bjut.cn/users/{userName}@org1.sxf.bjut.cn/msp
+    peers:
+      - peer0.org1.sxf.bjut.cn
+      - peer1.org1.sxf.bjut.cn
+
+    certificateAuthorities:
+      - ca.org1.sxf.bjut.cn
+
+orderers:
+  orderer.sxf.bjut.cn:
+    url: 127.0.0.1:7050
+
+    grpcOptions:
+      ssl-target-name-override: orderer.sxf.bjut.cn
+     
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+     
+      allow-insecure: false
+
+    tlsCACerts:
+    
+      path: ${GOPATH}/src/identity/fixtures/crypto-config/ordererOrganizations/sxf.bjut.cn/tlsca/tlsca.sxf.bjut.cn-cert.pem
+
+peers:
+  peer0.org1.sxf.bjut.cn:
+  
+    url: localhost:7051
+
+    eventUrl: localhost:7053
+
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.sxf.bjut.cn
+     
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+
+      allow-insecure: false
+
+    tlsCACerts:
+     
+      path: ${GOPATH}/src/identity/fixtures/crypto-config/peerOrganizations/org1.sxf.bjut.cn/tlsca/tlsca.org1.sxf.bjut.cn-cert.pem
+
+  peer1.org1.sxf.bjut.cn:
+   
+    url: localhost:7151
+   
+    eventUrl: localhost:7153
+
+    grpcOptions:
+      ssl-target-name-override: peer1.org1.sxf.bjut.cn
+     
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+   
+      allow-insecure: false
+
+    tlsCACerts:
+     
+      path: ${GOPATH}/src/identity/fixtures/crypto-config/peerOrganizations/org1.sxf.bjut.cn/tlsca/tlsca.org1.sxf.bjut.cn-cert.pem
+
+certificateAuthorities:
+  ca.org1.sxf.bjut.cn:
+    url: http://localhost:7054
+    tlsCACerts:
+     
+      path: ${GOPATH}/src/identity/fixtures/crypto-config/peerOrganizations/org1.sxf.bjut.cn/ca/ca.org1.sxf.bjut.cn-cert.pem
+
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+
+    caName: ca.org1.sxf.bjut.cn
+
+entityMatchers:
+  peer:
+    - pattern: (\w*)peer0.org1.sxf.bjut.cn(\w*)
+      urlSubstitutionExp: localhost:7051
+      eventUrlSubstitutionExp: localhost:7053
+      sslTargetOverrideUrlSubstitutionExp: peer0.org1.sxf.bjut.cn
+      mappedHost: peer0.org1.sxf.bjut.cn
+
+    - pattern: (\w*)peer1.org1.sxf.bjut.cn(\w*)
+      urlSubstitutionExp: localhost:7151
+      eventUrlSubstitutionExp: localhost:7153
+      sslTargetOverrideUrlSubstitutionExp: peer1.org1.sxf.bjut.cn
+      mappedHost: peer1.org1.sxf.bjut.cn
+
+  orderer:
+    - pattern: (\w*)orderer.sxf.bjut.cn(\w*)
+      urlSubstitutionExp: localhost:7050
+      sslTargetOverrideUrlSubstitutionExp: orderer.sxf.bjut.cn
+      mappedHost: orderer.sxf.bjut.cn
+
+  certificateAuthorities:
+    - pattern: (\w*)ca.org1.sxf.bjut.cn(\w*)
+      urlSubstitutionExp: http://localhost:7054
+      mappedHost: ca.org1.sxf.bjut.cn
